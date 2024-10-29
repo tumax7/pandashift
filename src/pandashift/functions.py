@@ -1,3 +1,10 @@
+import os
+from decimal import Decimal
+import pandas as pd
+import psycopg
+import re
+import numpy as np
+
 def read_query(query,
                credentials=None):
     if credentials == None:
@@ -10,7 +17,6 @@ def read_query(query,
                       }
         
         credentials = {k:os.getenv(field_maps[k]) for k in field_maps.keys()}
-        print(credentials)
         missing_fields = [field_maps[k] for k in credentials.keys() if credentials[k]==None]
         if missing_fields:
             raise Exception(f'''Please pass a connection dict or set the following env variables :\n{',\n'.join(missing_fields)}''')
@@ -22,7 +28,7 @@ def read_query(query,
     return result
 
 
-def execute_query(query, credentials):
+def execute_query(query, credentials=None):
     if credentials == None:
         field_maps = {
                        "host":"REDSHIFT_HOST",
@@ -33,7 +39,6 @@ def execute_query(query, credentials):
                       }
         
         credentials = {k:os.getenv(field_maps[k]) for k in field_maps.keys()}
-        print(credentials)
         missing_fields = [field_maps[k] for k in credentials.keys() if credentials[k]==None]
         if missing_fields:
             raise Exception(f'''Please pass a connection dict or set the following env variables :\n{',\n'.join(missing_fields)}''')
@@ -81,6 +86,9 @@ def load_df(init_df,
     
     # To avoid altering current data
     df = init_df.copy()
+
+    if df.shape[0]==0:
+        return 'Nothing to write'
     
     # Compiling re to improve performance
     pattern = re.compile("|".join(replacements.keys()))
@@ -103,11 +111,7 @@ def load_df(init_df,
             
     # Splitting dataframe into batches
     for i,row_arr in enumerate(df.values):
-        #print(row_arr)
-        print(row_arr)
         unparsed_row = (str(tuple(row_arr))+',\n')
-        #row = pattern.sub(lambda match: replacements[match.group(0)],unparsed_row)
-        #print(row)
         if len(header_of_string)+len(unparsed_row)>=maximum_insert_length:
             # Handling large rows
             raise Exception(f'''Error row {i} larger that maximum insert length.\n\t   Edit the maximum_insert_length parameter, remove the row or opt for another method to load data https://docs.aws.amazon.com/redshift/latest/dg/r_COPY.html''')
@@ -118,7 +122,6 @@ def load_df(init_df,
             print(f'Writing batch {batch_counter}')
             # Parsing for NULLS and quotes
             temp_insert_string = pattern.sub(lambda match: replacements[match.group(0)],temp_insert_string)
-            print(temp_insert_string)
             # Inserting result
             execute_query(header_of_string +temp_insert_string[:-2] +';')
             batch_counter +=1
@@ -130,7 +133,6 @@ def load_df(init_df,
 
     # Parsing for NULLS and quotes
     temp_insert_string = pattern.sub(lambda match: replacements[match.group(0)],temp_insert_string)
-    print(temp_insert_string)
     execute_query(header_of_string+temp_insert_string[:-2] +';')
 
     # Updating table statistics
