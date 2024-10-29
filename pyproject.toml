@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pandashift"
+version = "1.0.0"
+dependencies = [
+    psycopg,
+    pandas
+]
+
+requires-python = ">=3.8"
+authors = [
+  {name = "Maksim Linichenko", email = "maksim.linichenko@yahoo.com"},
+]
+description = "Module for quick and easy access to redshift using pandas"
+readme = "README.md"
+keywords = ["redshift", "pandas", "analytics", "amazon"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent"
+]
+
+[project.urls]
+Homepage = "https://github.com/tumax7/pandashift"
+Issues = "https://github.com/tumax7/pandashift/issues"
