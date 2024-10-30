@@ -1,6 +1,12 @@
+# Creds
+.env
+
 # MacOS files
 .DS_Store
 
 # Build 
 *.egg-info/
 dist/
+
+# Runfiles
+*.pyc

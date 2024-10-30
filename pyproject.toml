@@ -7,6 +7,7 @@ name = "pandashift"
 version = "1.0.1"
 dependencies = [
     "psycopg",
+    "psycopg[binary]",
     "pandas"
 ]
 
@@ -25,3 +26,10 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/tumax7/pandashift"
 Issues = "https://github.com/tumax7/pandashift/issues"
+
+
+[tool.pytest.ini_options]
+addopts = "--rootdir=/dist"
+testpaths = [
+    "tests",
+]

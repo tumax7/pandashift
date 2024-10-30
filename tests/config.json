@@ -1,0 +1,4 @@
+{
+    "specified_schema" : "sandbox",
+    "test_table_name" : "ml_write_test"
+}
