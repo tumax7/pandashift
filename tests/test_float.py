@@ -18,11 +18,11 @@ def test_float():
     CREATE TABLE IF NOT EXISTS {table_name} (
     decimal DECIMAL,
     real REAL,
-    double DOUBLE
+    double DOUBLE PRECISION
     )
     ''')
 
-    load_df(df, table_name)
+    load_df(df, table_name = table_name)
 
     result = read_query(f"SELECT * FROM {table_name} LIMIT 10")
 

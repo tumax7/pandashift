@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pandashift"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
     "psycopg",
     "psycopg[binary]",
     "pandas"
 ]
 
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [
   {name = "Maksim Linichenko", email = "maksim.linichenko@yahoo.com"},
 ]
@@ -19,8 +19,12 @@ description = "Module for quick and easy access to redshift using pandas"
 readme = "README.md"
 keywords = ["redshift", "pandas", "analytics", "amazon"]
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3",
-  "Operating System :: OS Independent"
+    "Operating System :: OS Independent"
 ]
 
 [project.urls]

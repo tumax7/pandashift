@@ -1,6 +1,5 @@
 # pandashift
-Wrapper for working with Amazon Redshift using pandas
-
+Wrapper for working with Amazon Redshift using pandas without the use of S3
 
 ## Installing
 
@@ -9,18 +8,31 @@ pip install pandashift
 ```
 
 ## Usage
-### Quick Start
-With environment variables
+There are 2 ways work with this package
+
+1. Setting up environment variables 
+2. Passing credentials on every call
+
+Below are examples of both approaches
+
+### With environment variables set up
 
 ``` python
-from pandashift import read_query
+from pandashift import read_query, execute_query, load_db
 
-result = read_query('SELECT 1')
+# Read Data
+df = read_query('SELECT * FROM public.test')
+
+# Execute statement (aka table create/drop/etc)
+execute_query('TRUNCATE public.test')
+
+# Loading dataframe
+load_df(df, table_name ='public.test')
 ```
 
-Without environment variables
+### No environment variables
 ``` python
-from pandashift import read_query
+from pandashift import read_query, execute_query, load_db
 
 creds = {
         "host":"YOUR HOST",
@@ -30,5 +42,40 @@ creds = {
         "password":"YOUR PASSWORD"
         }
 
-result = read_query('SELECT 1',creds)
+# Read Data
+df = read_query('SELECT * FROM public.test',credentials = creds)
+
+# Execute statement (aka table create/drop/etc)
+execute_query('TRUNCATE public.test',credentials = creds)
+
+# Loading dataframe
+load_df(df, table_name = 'public.test',credentials = creds)
 ```
+
+## Functions
+
+### load_df
+
+
+| Parameter             | Usage                                                                                                                           |
+|-----------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| init_df               | The dataframe for loading                                                                                                       |
+| table_name            | The table that you want to load the df to                                                                                       |
+| credentials           | Credentials to use for connection if any                                                                                        |
+| verify_column_names   | The checks that the dataframe column order matches the table column order, by default **True**                                  |
+| empty_str_as_null     | This option will interpret empty string '' as NULL, by default  **True**                                                        |
+| maximum_insert_length | Maximum length of the insert statement, alter this if you get error exceeding the max statement length, by default **16000000** |
+| perform_analyze       | If this is true at the end of loading will run ANALYZE table, by default  **False**                                             |
+
+Currently only the these datatypes are suppourted: 
+* SMALLINT
+* INTEGER
+* BIGINT
+* DECIMAL
+* REAL
+* DOUBLE
+* TIMESTAMP
+* DATE
+* CHAR
+* VARCHAR
+* BOOLEAN

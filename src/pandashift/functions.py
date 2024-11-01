@@ -1,21 +1,16 @@
 import os
 from decimal import Decimal
+from datetime import datetime, date
 import pandas as pd
 import psycopg
 import re
 import numpy as np
+from .constants import field_maps
+
 
 def read_query(query,
                credentials=None):
-    if credentials == None:
-        field_maps = {
-                       "host":"REDSHIFT_HOST",
-                       "port":"REDSHIFT_PORT",
-                       "dbname":"REDSHIFT_DATABASE",
-                       "user":"REDSHIFT_USER",
-                       "password":"REDSHIFT_PASSWORD"
-                      }
-        
+    if credentials == None:        
         credentials = {k:os.getenv(field_maps[k]) for k in field_maps.keys()}
         missing_fields = [field_maps[k] for k in credentials.keys() if credentials[k]==None]
         if missing_fields:
@@ -30,15 +25,7 @@ def read_query(query,
 
 
 def execute_query(query, credentials=None):
-    if credentials == None:
-        field_maps = {
-                       "host":"REDSHIFT_HOST",
-                       "port":"REDSHIFT_PORT",
-                       "dbname":"REDSHIFT_DATABASE",
-                       "user":"REDSHIFT_USER",
-                       "password":"REDSHIFT_PASSWORD"
-                      }
-        
+    if credentials == None:        
         credentials = {k:os.getenv(field_maps[k]) for k in field_maps.keys()}
         missing_fields = [field_maps[k] for k in credentials.keys() if credentials[k]==None]
         if missing_fields:
@@ -59,19 +46,19 @@ def parse_dtype(s):
         return float
 
 def load_df(init_df,
-            name='analytics.sessions',
+            table_name='analytics.sessions',
+            credentials = None,
             verify_column_names = True,
             empty_str_as_null = True,
             maximum_insert_length=16000000,
-            perform_analyze = False,
-            admin=False,
+            perform_analyze = False
             ):
 
     # Defining variables for batch splitting
     if verify_column_names:
-        header_of_string = f'''INSERT INTO {name}({','.join(init_df.columns)}) VALUES \n'''
+        header_of_string = f'''INSERT INTO {table_name}({','.join(init_df.columns)}) VALUES \n'''
     else:
-        header_of_string = f'''INSERT INTO {name} VALUES \n'''
+        header_of_string = f'''INSERT INTO {table_name} VALUES \n'''
     temp_total_length = len(header_of_string)
     temp_insert_string = ''
     batch_counter = 1
@@ -99,15 +86,14 @@ def load_df(init_df,
     for col, datatype in df.dtypes.items(): 
         if datatype == 'object':
             real_dtype = parse_dtype(df[col])
-            #print(col)
             if real_dtype == Decimal:
                 df[col] = df[col].astype(float).fillna('#none_qoute#')
             elif real_dtype == str:
-                df[col] = df[col].apply(lambda x:x.replace('"','#double_qoute#').replace("'","#single_quote#") if pd.notnull(x) else x)
+                df[col] = df[col].fillna('#none_qoute#').astype(str).apply(lambda x:x.replace('"','#double_qoute#').replace("'","#single_quote#") if pd.notnull(x) else x)
             else:
-                df[col] = df[col].fillna('#none_qoute#')
-        elif datatype in (np.datetime64,np.dtype('<M8[ns]')):
-            df[col] = df[col].astype(str).fillna('#none_qoute#')
+                df[col] = df[col].fillna('#none_qoute#').astype(str)
+        elif datatype in (date,datetime,np.datetime64,np.dtype('<M8[ns]')):
+            df[col] = df[col].fillna('#none_qoute#').astype(str)
         else:
             df[col] = df[col].fillna('#none_qoute#')
             
@@ -125,7 +111,7 @@ def load_df(init_df,
             # Parsing for NULLS and quotes
             temp_insert_string = pattern.sub(lambda match: replacements[match.group(0)],temp_insert_string)
             # Inserting result
-            execute_query(header_of_string +temp_insert_string[:-2] +';')
+            execute_query(header_of_string +temp_insert_string[:-2] +';', credentials=credentials)
             batch_counter +=1
             temp_insert_string = unparsed_row
             temp_total_length = len(header_of_string)
@@ -135,11 +121,11 @@ def load_df(init_df,
 
     # Parsing for NULLS and quotes
     temp_insert_string = pattern.sub(lambda match: replacements[match.group(0)],temp_insert_string)
-    execute_query(header_of_string+temp_insert_string[:-2] +';')
+    execute_query(header_of_string+temp_insert_string[:-2] +';',credentials=credentials)
 
     # Updating table statistics
     if perform_analyze:
         print('Updating table statistics')
-        execute_query(f'ANALYZE {name};')
+        execute_query(f'ANALYZE {table_name};',credentials=credentials)
 
     return f'''Success Wrote {df.shape[0]} rows'''
