@@ -79,3 +79,18 @@ Currently only the these datatypes are suppourted:
 * CHAR
 * VARCHAR
 * BOOLEAN
+
+
+## Testing
+
+In order to run local testing
+
+1. Create an environment with required modules
+``` bash
+pip install -r requirements.txt
+```
+
+2. Run the following from the `/tests` directory
+```
+pytest
+```

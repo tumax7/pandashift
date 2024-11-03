@@ -35,5 +35,5 @@ Issues = "https://github.com/tumax7/pandashift/issues"
 [tool.pytest.ini_options]
 addopts = "--rootdir=/dist"
 testpaths = [
-    "tests",
+    "tests"
 ]
