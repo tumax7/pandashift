@@ -3,7 +3,7 @@ import pandas as pd
 from utils import config, str_generator_function
 sys.path.append('../')
 
-from src.pandashift.functions import read_query, execute_query, load_df
+from src.pandashift import read_query, execute_query, load_df
 
 def test_str():
     types_tested = ['CHAR','VARCHAR']

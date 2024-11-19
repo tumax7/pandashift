@@ -4,6 +4,7 @@ import json
 import numpy as np
 from decimal import Decimal
 from datetime import datetime, timedelta
+import pandas as pd
 import uuid
 
 from dotenv import load_dotenv
@@ -93,3 +94,15 @@ def str_generator_function(tested_dtype):
         val = None
 
     return val
+
+
+def generate_test_df():
+    df = pd.DataFrame()
+    df['test_timestamp'] = [timestamp_generator_function() for i in range(1000)]
+    df['test_int'] =  [int_generator_function('INTEGER') for i in range(1000)]
+    df['test_float'] = [float_generator_function('DOUBLE') for i in range(1000)]
+    df['test_varchar'] = [str_generator_function('VARCHAR') for i in range(1000)]
+    # Making lower case string to avoid timestamp scan error
+    df['test_varchar'] = df['test_varchar'].apply(lambda x:x.lower() if pd.notnull(x) else x)
+    
+    return df

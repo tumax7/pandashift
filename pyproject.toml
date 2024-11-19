@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pandashift"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
     "psycopg",
     "psycopg[binary]",
@@ -32,8 +32,3 @@ Homepage = "https://github.com/tumax7/pandashift"
 Issues = "https://github.com/tumax7/pandashift/issues"
 
 
-[tool.pytest.ini_options]
-addopts = "--rootdir=/dist"
-testpaths = [
-    "tests"
-]

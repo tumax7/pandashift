@@ -1,41 +1,10 @@
-import os
+import numpy as np
 from decimal import Decimal
 from datetime import datetime, date
 import pandas as pd
-import psycopg
 import re
-import numpy as np
-from .constants import field_maps
 
-
-def read_query(query,
-               credentials=None):
-    if credentials == None:        
-        credentials = {k:os.getenv(field_maps[k]) for k in field_maps.keys()}
-        missing_fields = [field_maps[k] for k in credentials.keys() if credentials[k]==None]
-        if missing_fields:
-            missing_field_str = ',\n'.join(missing_fields)
-            raise Exception(f'''Please pass a connection dict or set the following env variables :\n{missing_field_str}''')
-    connection_clause = psycopg.connect(**credentials)
-    with connection_clause as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(query)
-            result = pd.DataFrame(cursor.fetchall(), columns = [desc[0] for desc in cursor.description])
-    return result
-
-
-def execute_query(query, credentials=None):
-    if credentials == None:        
-        credentials = {k:os.getenv(field_maps[k]) for k in field_maps.keys()}
-        missing_fields = [field_maps[k] for k in credentials.keys() if credentials[k]==None]
-        if missing_fields:
-            missing_field_str = ',\n'.join(missing_fields)
-            raise Exception(f'''Please pass a connection dict or set the following env variables :\n{missing_field_str}''')
-    with psycopg.connect(**credentials) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(query)
-        conn.commit()
-    return 'Success'
+from .read_execute import execute_query
 
 
 def parse_dtype(s):
