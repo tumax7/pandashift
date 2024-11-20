@@ -20,26 +20,34 @@ def test_date(s, mode):
     dt = pd.to_datetime(s, errors='coerce')
     hour_sum = dt.hour+dt.minute+dt.second
     if not pd.isnull(dt):
-        if ((mode == 'timestamp') & (hour_sum>0))|((mode == 'date') & (hour_sum==0)):
+        if ((mode == 'TIMESTAMP') & (hour_sum>0))|((mode == 'DATE') & (hour_sum==0)):
             response = True
     return response
 
+def test_num(s, mode):
+    response = False
+    dtype = int
+    if mode == 'FLOAT':
+        dtype = float
+    try:
+        dtype(str(s))
+        return True
+    except ValueError:
+        return False
+
 def is_dtype(element: any,
-             dtype) -> bool:
+             datatype) -> bool:
     if element is None: 
         return False        
-    elif dtype == bool:
+    elif datatype == 'BOOLEAN':
         return test_bool(element)
-    elif dtype == 'timestamp':
-        return test_date(element,mode = dtype)
-    elif dtype == 'date':
-        return test_date(element,mode = dtype)
+    elif datatype in ('TIMESTAMP','DATE'):
+        return test_date(element,mode = datatype)
+    elif datatype in ('INTEGER','FLOAT'):
+        return test_num(element,mode = datatype)
     else:
-        try:
-            dtype(str(element))
-            return True
-        except ValueError:
-            return False
+        raise Exception('The datatype is not suppourted')
+        return False
 
 def generate_ddl(dtype_dict: dict,
                  table_name: str,
@@ -56,7 +64,13 @@ def generate_ddl(dtype_dict: dict,
     return init_str+',\n'.join(attr)+')\n'+extra+';'
 
 
-def determine_dtypes(df):
+def determine_dtypes(df, threshold = 0.8):
+    tested_dtypes = ['FLOAT',
+                     'INTEGER',
+                     'TIMESTAMP',
+                     'DATE',
+                     'BOOLEAN']
+    
     df_length = df.shape[0]
     sample_size = (df_length>100)*100 + (not df_length>100)*df_length
 
@@ -65,25 +79,20 @@ def determine_dtypes(df):
     # Using pandas dtypes
     result_dict = {i:numpy_to_redshift_mappings[v] for i,v in test_df.dtypes.items()}
     object_fields = [k for k in result_dict if result_dict[k]=='VARCHAR']
-    tested_dtypes = {int:'INTEGER',
-                     float:'FLOAT',
-                     'timestamp':'TIMESTAMP',
-                     'date':'DATE',
-                     bool:'BOOLEAN'}
 
     # If pandas type is object, run them through checks
     for c in object_fields:
-        temp_result = {}
-        for t in tested_dtypes.keys():
-            temp_result[tested_dtypes[t]] = test_df[c].dropna().apply(lambda x:is_dtype(x, t)).sum()/sample_size
-        sorted_temp = dict(sorted(temp_result.items(), key=lambda item: item[1], reverse=True))
-        arr_vals = list(sorted_temp.values())
-        dtype = list(sorted_temp.keys())[0]
-        if arr_vals[0]>0.5:
-            if arr_vals[0]==arr_vals[1]:
-                dtype = 'INTEGER'
+        temp_arr = []
+        for t in tested_dtypes:
+            temp_arr.append(test_df[c].dropna().apply(lambda x:is_dtype(x, t)).sum()/sample_size)
+        top_value_index = np.argsort(temp_arr)[::-1][0]
+        
+        arr_vals = temp_arr[top_value_index]
+        
+        if arr_vals>threshold:
+            dtype = tested_dtypes[top_value_index]
         else:
-            longest_string = test_df[c].apply(lambda x:len(x) if pd.notnull(x) else 0).max()
+            longest_string = test_df[c].astype(str).apply(lambda x:len(x) if pd.notnull(x) else 0).max()
             if longest_string != 0:
                 dtype = f'VARCHAR({int(longest_string*1.1)})'
             else:
@@ -96,8 +105,12 @@ def create_table_from_df(df,
                          table_name: str,
                          credentials = None,
                          sortkeys:list =[],
-                         distkey:str = None) -> str:
-    sql_datatypes=determine_dtypes(df)
+                         distkey:str = None,
+                         threshold:float = 0.8,
+                         show_ddl:bool = False) -> str:
+    sql_datatypes=determine_dtypes(df,threshold)
     ddl = generate_ddl(sql_datatypes, table_name,sortkeys, distkey)
+    if show_ddl:
+        print(ddl)
     execute_query(ddl,credentials)
     return 'Success'

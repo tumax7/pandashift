@@ -13,7 +13,7 @@ def test_int_no_env():
     # Generating df
     df = generate_test_df()
 
-    create_table_from_df(df, table_name,credentials = test_credentials)
+    create_table_from_df(df, table_name,credentials = test_credentials, threshold = 0.5)
 
     load_df(df,table_name = table_name,credentials = test_credentials, perform_analyze=True)
 

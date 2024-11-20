@@ -13,7 +13,7 @@ def test_create_table():
     df = generate_test_df()
     sortkey_col = df.columns[0]
     
-    create_table_from_df(df, table_name, sortkeys=[sortkey_col], distkey=sortkey_col)
+    create_table_from_df(df, table_name, sortkeys=[sortkey_col], distkey=sortkey_col, threshold = 0.5)
 
     load_df(df, table_name = table_name)
 
