@@ -7,8 +7,10 @@ from src.pandashift import read_query, execute_query, load_df
 
 def test_float():
     types_tested = ['DECIMAL','REAL','DOUBLE']
-    table_name = f"{config['specified_schema']}.{config['test_table_name']}_float"
+    table_name = f"{config['specified_schema']}.{config['test_table_name']}"
     
+    execute_query(f'DROP TABLE IF EXISTS {table_name}')
+
     # Generating df
     df = pd.DataFrame(columns = [t.lower() for t in types_tested])
     for t in types_tested:

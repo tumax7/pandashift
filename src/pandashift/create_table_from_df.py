@@ -99,7 +99,5 @@ def create_table_from_df(df,
                          distkey:str = None) -> str:
     sql_datatypes=determine_dtypes(df)
     ddl = generate_ddl(sql_datatypes, table_name,sortkeys, distkey)
-    print(ddl)
-    print(credentials)
-    print(execute_query(ddl,credentials))
+    execute_query(ddl,credentials)
     return 'Success'
