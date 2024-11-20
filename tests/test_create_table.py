@@ -1,7 +1,4 @@
-import sys
-import pandas as pd
-from utils import config, generate_test_df
-sys.path.append('../')
+from .utils import config, generate_test_df
 
 from src.pandashift import read_query, execute_query, load_df, create_table_from_df
 

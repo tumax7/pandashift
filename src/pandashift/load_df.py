@@ -5,7 +5,7 @@ import pandas as pd
 import re
 
 from .read_execute import execute_query
-
+from .create_table_from_df import create_table_from_df
 
 def parse_dtype(s):
     non_null_vals = s.dropna()
@@ -17,11 +17,15 @@ def parse_dtype(s):
 def load_df(init_df,
             table_name='analytics.sessions',
             credentials = None,
+            auto_create_table = False,
             verify_column_names = True,
             empty_str_as_null = True,
             maximum_insert_length=16000000,
             perform_analyze = False
             ):
+
+    if auto_create_table:
+        create_table_from_df(init_df, table_name, credentials=credentials)
 
     # Defining variables for batch splitting
     if verify_column_names:

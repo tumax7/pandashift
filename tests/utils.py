@@ -7,9 +7,6 @@ from datetime import datetime, timedelta
 import pandas as pd
 import uuid
 
-from dotenv import load_dotenv
-load_dotenv()
-
 test_credentials ={
         "host":os.getenv("REDSHIFT_HOST"),
         "port":os.getenv("REDSHIFT_PORT"),
@@ -18,7 +15,9 @@ test_credentials ={
         "password":os.getenv("REDSHIFT_PASSWORD")
         }
 
-with open(os.path.abspath('config.json'), 'r') as f:
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+with open(dir_path+'/config.json', 'r') as f:
     config = json.load(f)
 
 def int_generator_function(tested_dtype):
@@ -84,7 +83,7 @@ def str_generator_function(tested_dtype):
     if tested_dtype == 'BOOLEAN':
         val = bool(round(random.random()))
     else:
-        val = uuid.uuid4().hex.upper()[:6]
+        val = uuid.uuid4().hex[:6]
 
     # Adding random errors NULLS and floats and strings
     random_val = random()
@@ -95,14 +94,16 @@ def str_generator_function(tested_dtype):
 
     return val
 
-
-def generate_test_df():
-    df = pd.DataFrame()
-    df['test_timestamp'] = [timestamp_generator_function() for i in range(1000)]
-    df['test_int'] =  [int_generator_function('INTEGER') for i in range(1000)]
-    df['test_float'] = [float_generator_function('DOUBLE') for i in range(1000)]
-    df['test_varchar'] = [str_generator_function('VARCHAR') for i in range(1000)]
-    # Making lower case string to avoid timestamp scan error
-    df['test_varchar'] = df['test_varchar'].apply(lambda x:x.lower() if pd.notnull(x) else x)
+def generate_test_df(types_tested = ['DATE','INTEGER','DOUBLE','VARCHAR'], length = 1000):
+    df = pd.DataFrame(columns = [t.lower() for t in types_tested])
+    for t in types_tested:
+        if t in ('DECIMAL','REAL','DOUBLE'):
+            df[t.lower()] = [float_generator_function(t) for i in range(length)]
+        elif t in ('SMALLINT','INTEGER','BIGINT'):
+            df[t.lower()] = [int_generator_function(t) for i in range(length)]
+        elif t in ('CHAR','VARCHAR'):
+            df[t.lower()] = [str_generator_function(t) for i in range(length)]
+        elif t in ('TIMESTAMP','DATE'):
+            df[t.lower()] = [timestamp_generator_function() for i in range(length)]
     
     return df

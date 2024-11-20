@@ -70,6 +70,7 @@ load_df(df, table_name = 'public.test',credentials = creds)
 | init_df               | The dataframe for loading                                                                                                       |
 | table_name            | The table that you want to load the df to                                                                                       |
 | credentials           | Credentials to use for connection if any                                                                                        |
+| auto_create_table     | Create the table if it doesn't exist, by default **False**                                                                                           |
 | verify_column_names   | The checks that the dataframe column order matches the table column order, by default **True**                                  |
 | empty_str_as_null     | This option will interpret empty string '' as NULL, by default  **True**                                                        |
 | maximum_insert_length | Maximum length of the insert statement, alter this if you get error exceeding the max statement length, by default **16000000** |
@@ -111,7 +112,7 @@ In order to run local testing
 pip install -r requirements.txt
 ```
 
-2. Run the following from the `/tests` directory
+2. Run the following
 ```
 pytest
 ```
