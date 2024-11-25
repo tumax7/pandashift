@@ -86,8 +86,10 @@ load_df(df, table_name = 'public.test',credentials = creds)
 | credentials           | Credentials to use for connection if any                                                                                        |
 | sortkeys              | Specify desired sortkeys, by default no sortkeys are used|
 | distkey               | Specify desired sortkeys, by default no distkeys are used|
-| show_ddl              | Prints the DDL of the created table, by default **False**|
 | threshold             | Specifies the threshold for datatype conversion (eg if more than 80% of values are float will create FLOAT column ). Must be a value between 0 and 1, by default **0.8**|
+| show_ddl              | Prints the DDL of the created table, by default **False**|
+| no_execute              | Just creates DDL, but doesn't run it in database (useful for debugging), by default **False**|
+
 
 Currently only the these datatypes are suppourted: 
 * SMALLINT

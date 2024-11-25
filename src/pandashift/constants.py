@@ -12,5 +12,6 @@ numpy_to_redshift_mappings = {
             np.dtype('int64'):'INT',
             np.dtype('<M8[ns]'):'TIMESTAMP',
             np.dtype('float64'):'FLOAT',
+            np.dtype('bool'):'BOOLEAN',
             np.dtype('O'):'VARCHAR'
             }

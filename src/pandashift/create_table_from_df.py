@@ -92,7 +92,7 @@ def determine_dtypes(df, threshold = 0.8):
         if arr_vals>threshold:
             dtype = tested_dtypes[top_value_index]
         else:
-            longest_string = df[c].astype(str).apply(lambda x:len(x) if pd.notnull(x) else 0).max()
+            longest_string = df[c].apply(lambda x:len(str(x)) if pd.notnull(x) else 0).max()
             if longest_string != 0:
                 dtype = f'VARCHAR({int(longest_string*1.5)})'
             else:
@@ -107,10 +107,12 @@ def create_table_from_df(df,
                          sortkeys:list =[],
                          distkey:str = None,
                          threshold:float = 0.8,
-                         show_ddl:bool = False) -> str:
+                         show_ddl:bool = False,
+                         no_execute:bool = False) -> str:
     sql_datatypes=determine_dtypes(df,threshold)
     ddl = generate_ddl(sql_datatypes, table_name,sortkeys, distkey)
     if show_ddl:
         print(ddl)
-    execute_query(ddl,credentials)
+    if no_execute:
+        execute_query(ddl,credentials)
     return 'Success'
