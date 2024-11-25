@@ -91,6 +91,8 @@ def str_generator_function(tested_dtype):
         val = np.nan
     elif (0.1<=random_val)&(random_val<0.2):
         val = None
+    elif (0.3<=random_val)&(random_val<0.31):
+        val = val*4
 
     return val
 

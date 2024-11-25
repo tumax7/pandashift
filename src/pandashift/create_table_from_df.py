@@ -92,9 +92,9 @@ def determine_dtypes(df, threshold = 0.8):
         if arr_vals>threshold:
             dtype = tested_dtypes[top_value_index]
         else:
-            longest_string = test_df[c].astype(str).apply(lambda x:len(x) if pd.notnull(x) else 0).max()
+            longest_string = df[c].astype(str).apply(lambda x:len(x) if pd.notnull(x) else 0).max()
             if longest_string != 0:
-                dtype = f'VARCHAR({int(longest_string*1.1)})'
+                dtype = f'VARCHAR({int(longest_string*1.5)})'
             else:
                 dtype = 'FLOAT'
         result_dict[c] = dtype
