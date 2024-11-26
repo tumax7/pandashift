@@ -65,30 +65,30 @@ load_df(df, table_name = 'public.test',credentials = creds)
 ### load_df
 
 
-| Parameter             | Usage                                                                                                                           |
-|-----------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| init_df               | The dataframe for loading                                                                                                       |
-| table_name            | The table that you want to load the df to                                                                                       |
-| credentials           | Credentials to use for connection if any                                                                                        |
-| auto_create_table     | Create the table if it doesn't exist, by default **False**                                                                                           |
-| verify_column_names   | The checks that the dataframe column order matches the table column order, by default **True**                                  |
-| empty_str_as_null     | This option will interpret empty string '' as NULL, by default  **True**                                                        |
-| maximum_insert_length | Maximum length of the insert statement, alter this if you get error exceeding the max statement length, by default **16000000** |
-| perform_analyze       | If this is true at the end of loading will run ANALYZE table, by default  **False**                                             |
+| Parameter             | Usage           |
+|-----------------------|--------------------------------------------------------------------------------|
+| init_df               | The dataframe for loading|
+| table_name            | The table that you want to load the df to|
+| credentials           | Credentials to use for connection if any|
+| auto_create_table     | Create the table if it doesn't exist, by default **False**|
+| verify_column_names   | The checks that the dataframe column order matches the table column order, by default|
+| empty_str_as_null     | This option will interpret empty string '' as NULL, by default  **True**|
+| maximum_insert_length | Maximum length of the insert statement, alter this if you get error exceeding the max statement length, by default **16000000**|
+| perform_analyze       | If this is true at the end of loading will run ANALYZE table, by default  **False**|
 
 
 ### create_table_from_df
 
-| Parameter             | Usage                                                                                                                           |
-|-----------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| df                    | The dataframe for loading                                                                                                       |
-| table_name            | The table that you want to load the df to                                                                                       |
-| credentials           | Credentials to use for connection if any                                                                                        |
+| <br>Parameter             | Usage           |
+|-----------------------|--------------------------------------------------------------------------------|
+| df                    | The dataframe for loading|
+| table_name            | The table that you want to load the df to|
+| credentials           | Credentials to use for connection if any|
 | sortkeys              | Specify desired sortkeys, by default no sortkeys are used|
 | distkey               | Specify desired sortkeys, by default no distkeys are used|
 | threshold             | Specifies the threshold for datatype conversion (eg if more than 80% of values are float will create FLOAT column ). Must be a value between 0 and 1, by default **0.8**|
-| show_ddl              | Prints the DDL of the created table, by default **False**|
-| no_execute              | Just creates DDL, but doesn't run it in database (useful for debugging), by default **False**|
+| show_ddl              | Prints the DDL of the created table, by default **False** |
+| no_execute            | Just creates DDL, but doesn't run it in database (useful for debugging), by default **False** |
 
 
 Currently only the these datatypes are suppourted: 

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from .constants import numpy_to_redshift_mappings
 from .read_execute import execute_query
-
+import json
 
 # Datatypes tests
 def test_bool(s):
@@ -15,6 +15,15 @@ def test_bool(s):
         response = True
     return response
 
+def test_super(s):
+    response = False
+    try:
+        json.loads(s)
+        response = True
+    except:
+        pass
+    return response
+
 def test_date(s, mode):
     response = False
     dt = pd.to_datetime(s, errors='coerce')
@@ -25,7 +34,6 @@ def test_date(s, mode):
     return response
 
 def test_num(s, mode):
-    response = False
     dtype = int
     if mode == 'FLOAT':
         dtype = float
@@ -41,6 +49,8 @@ def is_dtype(element: any,
         return False        
     elif datatype == 'BOOLEAN':
         return test_bool(element)
+    elif datatype == 'SUPER':
+        return test_super(element)
     elif datatype in ('TIMESTAMP','DATE'):
         return test_date(element,mode = datatype)
     elif datatype in ('INTEGER','FLOAT'):
@@ -69,7 +79,8 @@ def determine_dtypes(df, threshold = 0.8):
                      'INTEGER',
                      'TIMESTAMP',
                      'DATE',
-                     'BOOLEAN']
+                     'BOOLEAN',
+                     'SUPER']
     
     df_length = df.shape[0]
     sample_size = (df_length>100)*100 + (not df_length>100)*df_length
