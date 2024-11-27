@@ -81,7 +81,7 @@ def str_generator_function(tested_dtype):
     
     # Base
     if tested_dtype == 'BOOLEAN':
-        val = bool(round(random.random()))
+        val = bool(round(random()))
     else:
         val = uuid.uuid4().hex[:6]
 
@@ -96,7 +96,26 @@ def str_generator_function(tested_dtype):
 
     return val
 
-def generate_test_df(types_tested = ['DATE','INTEGER','DOUBLE','VARCHAR'], length = 1000):
+def super_generator_function(subtype = 'json'):
+    
+    # Base
+    if subtype == 'json':
+        val = json.dumps({'test':round(random()*100)})
+    elif subtype == 'array':
+        val = str([round(random()*100,1) for i in range(3)])
+    #elif subtype == 'tuple': Tuple not suppourted yet
+    #    val = str((round(random()*100,1),round(random()*100,1),round(random()*100,1)))
+    
+    # Adding random errors NULLS and floats and strings
+    random_val = random()
+    if (0<=random_val)&(random_val<0.1):
+        val = np.nan
+    elif (0.1<=random_val)&(random_val<0.2):
+        val = None
+    return val
+
+
+def generate_test_df(types_tested = ['DATE','INTEGER','DOUBLE','VARCHAR','SUPER'], length = 1000):
     df = pd.DataFrame(columns = [t.lower() for t in types_tested])
     for t in types_tested:
         if t in ('DECIMAL','REAL','DOUBLE'):
@@ -107,5 +126,7 @@ def generate_test_df(types_tested = ['DATE','INTEGER','DOUBLE','VARCHAR'], lengt
             df[t.lower()] = [str_generator_function(t) for i in range(length)]
         elif t in ('TIMESTAMP','DATE'):
             df[t.lower()] = [timestamp_generator_function() for i in range(length)]
-    
+        elif t == 'SUPER':
+            for subtype in ['json','array']: 
+                df[t.lower()+'_'+subtype] = [super_generator_function(subtype) for i in range(length)]
     return df

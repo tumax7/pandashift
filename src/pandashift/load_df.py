@@ -3,9 +3,10 @@ from decimal import Decimal
 from datetime import datetime, date
 import pandas as pd
 import re
+import json
 
 from .read_execute import execute_query
-from .create_table_from_df import create_table_from_df
+from .create_table_from_df import create_table_from_df, test_super
 
 def parse_dtype(s):
     non_null_vals = s.dropna()
@@ -13,6 +14,30 @@ def parse_dtype(s):
         return type(non_null_vals.iloc[0])
     else:
         return float
+
+def get_python_dtype(v):
+    response = float
+    if test_super(v):
+        response =  type(json.loads(v))
+    else:
+        response = type(v)
+    return response
+
+def best_dtype(series):
+    series_length = series.dropna().shape[0]
+    sample_size = (series_length>100)*100 + (not series_length>100)*series_length
+    if series_length:
+        dtypes =  series.dropna().apply(lambda x:get_python_dtype(x)).value_counts(normalize=True)
+        top_dtype = dtypes.index[0]
+    else:
+        top_dtype = float
+    return top_dtype
+
+def dict_parser(v):
+    return "JSON_PARSE(\'"+json.dumps(json.loads(v))+'''\')'''
+
+def array_parser(v):
+    return 'ARRAY('+str(json.loads(v))[1:-1]+')'
 
 def load_df(init_df,
             table_name='analytics.sessions',
@@ -56,23 +81,26 @@ def load_df(init_df,
     pattern = re.compile("|".join(replacements.keys()))
     
     # Using custom escape characters
-    for col, datatype in df.dtypes.items(): 
+    for col, datatype in df.dtypes.items():
         if datatype == 'object':
-            real_dtype = parse_dtype(df[col])
+            print(col)
+            real_dtype = best_dtype(df[col])
             if real_dtype == Decimal:
                 df[col] = df[col].astype(float).fillna('#none_qoute#')
+            elif real_dtype == dict:
+                df[col] = df[col].apply(lambda x:dict_parser(x) if pd.notnull(x) else '#none_qoute#')
+            elif real_dtype == list:
+                df[col] = df[col].apply(lambda x:array_parser(x) if pd.notnull(x) else '#none_qoute#')
             elif real_dtype == str:
-                df[col] = df[col].fillna('#none_qoute#').astype(str).apply(lambda x:x.replace('"','#double_qoute#').replace("'","#single_quote#") if pd.notnull(x) else x)
+                df[col] = df[col].apply(lambda x:x.replace('"','#double_qoute#').replace("'","#single_quote#") if pd.notnull(x) else '#none_qoute#')
             else:
-                df[col] = df[col].fillna('#none_qoute#').astype(str)
-        elif datatype in (date,datetime,np.datetime64,np.dtype('<M8[ns]')):
-            df[col] = df[col].fillna('#none_qoute#').astype(str)
+                df[col] = df[col].fillna('#none_qoute#')
         else:
             df[col] = df[col].fillna('#none_qoute#')
             
     # Splitting dataframe into batches
     for i,row_arr in enumerate(df.values):
-        unparsed_row = (str(tuple(row_arr))+',\n')
+        unparsed_row = '('+','.join([str(v) for v in row_arr]) +'),\n'
         if len(header_of_string)+len(unparsed_row)>=maximum_insert_length:
             # Handling large rows
             raise Exception(f'''Error row {i} larger that maximum insert length.\n\t   Edit the maximum_insert_length parameter, remove the row or opt for another method to load data https://docs.aws.amazon.com/redshift/latest/dg/r_COPY.html''')

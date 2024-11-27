@@ -124,6 +124,6 @@ def create_table_from_df(df,
     ddl = generate_ddl(sql_datatypes, table_name,sortkeys, distkey)
     if show_ddl:
         print(ddl)
-    if no_execute:
+    if not no_execute:
         execute_query(ddl,credentials)
     return 'Success'
