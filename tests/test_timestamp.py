@@ -1,4 +1,4 @@
-from .utils import config, generate_test_df
+from .utils import config, generate_test_df, timestamp_generator_function
 
 from src.pandashift import read_query, execute_query, load_df
 
@@ -10,11 +10,13 @@ def test_timestamp():
 
     # Generating df
     df = generate_test_df(types_tested)
-    
+    df['pure_timestamp'] = [timestamp_generator_function(add_error=False) for i in range(df.shape[0])]
+
     execute_query(f'''
     CREATE TABLE IF NOT EXISTS {table_name} (
     timestamp TIMESTAMP,
-    date DATE
+    date DATE,
+    pure_timestamp TIMESTAMP
     )
     ''')
 

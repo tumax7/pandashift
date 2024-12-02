@@ -8,13 +8,6 @@ import json
 from .read_execute import execute_query
 from .create_table_from_df import create_table_from_df, test_super
 
-def parse_dtype(s):
-    non_null_vals = s.dropna()
-    if len(non_null_vals):
-        return type(non_null_vals.iloc[0])
-    else:
-        return float
-
 def get_python_dtype(v):
     response = float
     if test_super(v):
@@ -82,8 +75,7 @@ def load_df(init_df,
     
     # Using custom escape characters
     for col, datatype in df.dtypes.items():
-        if datatype == 'object':
-            print(col)
+        if datatype =='object':
             real_dtype = best_dtype(df[col])
             if real_dtype == Decimal:
                 df[col] = df[col].astype(float).fillna('#none_qoute#')
@@ -92,9 +84,13 @@ def load_df(init_df,
             elif real_dtype == list:
                 df[col] = df[col].apply(lambda x:array_parser(x) if pd.notnull(x) else '#none_qoute#')
             elif real_dtype == str:
-                df[col] = df[col].apply(lambda x:x.replace('"','#double_qoute#').replace("'","#single_quote#") if pd.notnull(x) else '#none_qoute#')
+                df[col] = df[col].apply(lambda x:"'"+x.replace('"','#double_qoute#').replace("'","#single_quote#")+"'" if pd.notnull(x) else '#none_qoute#')
             else:
-                df[col] = df[col].fillna('#none_qoute#')
+                df[col] = df[col].apply(lambda x:"'"+str(x)+"'" if pd.notnull(x) else '#none_qoute#')
+
+        elif datatype in (date,datetime,np.datetime64,np.dtype('<M8[ns]')):
+            df[col] = df[col].apply(lambda x:"'"+str(x)+"'" if pd.notnull(x) else '#none_qoute#')
+
         else:
             df[col] = df[col].fillna('#none_qoute#')
             

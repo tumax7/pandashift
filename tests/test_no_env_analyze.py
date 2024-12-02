@@ -2,7 +2,7 @@ from .utils import config, generate_test_df,test_credentials
 
 from src.pandashift import read_query, execute_query, load_df, create_table_from_df
 
-def test_int_no_env():
+def test_no_env():
     table_name = f"{config['specified_schema']}.{config['test_table_name']}"
 
     execute_query(f'DROP TABLE IF EXISTS {table_name}')

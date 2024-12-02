@@ -57,22 +57,23 @@ def float_generator_function(tested_dtype):
         val = None
     return val
 
-def timestamp_generator_function():
+def timestamp_generator_function(add_error = True):
     # Base
     val = datetime.now() - timedelta(seconds=randint(1,1000000))
 
-    # Adding random errors NULLS and floats and strings
-    random_val = random()
-    if (0<=random_val)&(random_val<0.1):
-        val = np.nan
-    elif (0.1<=random_val)&(random_val<0.2):
-        val = val.date()
-    elif (0.2<=random_val)&(random_val<0.3):
-        val = str(val)
-    elif (0.3<=random_val)&(random_val<0.4):
-        val = None
-    elif (0.4<=random_val)&(random_val<0.5):
-        val = str(val.date())
+    if add_error:
+        # Adding random errors NULLS and floats and strings
+        random_val = random()
+        if (0<=random_val)&(random_val<0.1):
+            val = np.nan
+        elif (0.1<=random_val)&(random_val<0.2):
+            val = val.date()
+        elif (0.2<=random_val)&(random_val<0.3):
+            val = str(val)
+        elif (0.3<=random_val)&(random_val<0.4):
+            val = None
+        elif (0.4<=random_val)&(random_val<0.5):
+            val = str(val.date())
 
     return val
 

@@ -14,14 +14,12 @@ def test_super():
 
     load_df(df, table_name = table_name)
 
-    print(read_query(f"SELECT * FROM {table_name} LIMIT 10"))
-
     result = read_query(f'''SELECT COUNT(DISTINCT super_json.test) as json_test,
                                    COUNT(DISTINCT super_array[0]) as array_test 
                             FROM {table_name} 
                             LIMIT 10''')
 
-    #execute_query(f"DROP TABLE {table_name}")
+    execute_query(f"DROP TABLE {table_name}")
     
     assert result['json_test'].sum()>0
     assert result['array_test'].sum()>0
