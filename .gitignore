@@ -10,3 +10,7 @@ dist/
 
 # Runfiles
 *.pyc
+__pycache__
+
+# PyTest
+.pytest_cache

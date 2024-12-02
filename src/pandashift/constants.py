@@ -8,7 +8,10 @@ default_connection_mappings = {
                 "password":"REDSHIFT_PASSWORD"
                 }
 
-numpy_to_redshift_mappings = {np.dtype('int64'):'INT',
+numpy_to_redshift_mappings = {
+            np.dtype('int64'):'INT',
             np.dtype('<M8[ns]'):'TIMESTAMP',
             np.dtype('float64'):'FLOAT',
-            np.dtype('O'):'VARCHAR'}
+            np.dtype('bool'):'BOOLEAN',
+            np.dtype('O'):'VARCHAR'
+            }

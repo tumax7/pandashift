@@ -1,24 +1,22 @@
-import sys
-import pandas as pd
-from utils import config, timestamp_generator_function
-sys.path.append('../')
+from .utils import config, generate_test_df, timestamp_generator_function
 
 from src.pandashift import read_query, execute_query, load_df
 
 def test_timestamp():
     types_tested = ['TIMESTAMP','DATE']
-    table_name = f"{config['specified_schema']}.{config['test_table_name']}_timestamp"
+    table_name = f"{config['specified_schema']}.{config['test_table_name']}"
     
-    # Generating df
+    execute_query(f'DROP TABLE IF EXISTS {table_name}')
 
-    df = pd.DataFrame(columns = [t.lower() for t in types_tested])
-    for t in types_tested:
-        df[t.lower()] = [timestamp_generator_function() for i in range(1000)]
-    
+    # Generating df
+    df = generate_test_df(types_tested)
+    df['pure_timestamp'] = [timestamp_generator_function(add_error=False) for i in range(df.shape[0])]
+
     execute_query(f'''
     CREATE TABLE IF NOT EXISTS {table_name} (
     timestamp TIMESTAMP,
-    date DATE
+    date DATE,
+    pure_timestamp TIMESTAMP
     )
     ''')
 
