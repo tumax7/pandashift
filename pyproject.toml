@@ -31,4 +31,5 @@ classifiers = [
 Homepage = "https://github.com/tumax7/pandashift"
 Issues = "https://github.com/tumax7/pandashift/issues"
 
-
+[tool.pylint.'MESSAGES CONTROL']
+disable = "E1129"

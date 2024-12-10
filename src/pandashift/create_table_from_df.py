@@ -1,11 +1,14 @@
+"""This module contains functions related to creating table from df.
+main idea is converting pandas types to redshift types """
+import json
 import pandas as pd
 import numpy as np
 from .constants import numpy_to_redshift_mappings
 from .read_execute import execute_query
-import json
 
 # Datatypes tests
 def test_bool(s):
+    """Performs test on string to check if it is boolean"""
     s = str(s)
     response = False
     parsed_str = s.strip().lower()
@@ -16,6 +19,7 @@ def test_bool(s):
     return response
 
 def test_super(s):
+    """Performs test on string to check if it is redshift super type"""
     response = False
     try:
         json.loads(s)
@@ -25,6 +29,7 @@ def test_super(s):
     return response
 
 def test_date(s, mode):
+    """Performs test on string to check if it is date or timestamp depending on mode"""
     response = False
     dt = pd.to_datetime(s, errors='coerce')
     hour_sum = dt.hour+dt.minute+dt.second
@@ -34,6 +39,7 @@ def test_date(s, mode):
     return response
 
 def test_num(s, mode):
+    """Performs test on string to check if it is int or float depending on mode"""
     dtype = int
     if mode == 'FLOAT':
         dtype = float
@@ -45,8 +51,9 @@ def test_num(s, mode):
 
 def is_dtype(element: any,
              datatype) -> bool:
-    if element is None: 
-        return False        
+    """Combines all the type functions into one to check for datatype"""
+    if element is None:
+        return False
     elif datatype == 'BOOLEAN':
         return test_bool(element)
     elif datatype == 'SUPER':
@@ -56,32 +63,37 @@ def is_dtype(element: any,
     elif datatype in ('INTEGER','FLOAT'):
         return test_num(element,mode = datatype)
     else:
-        raise Exception('The datatype is not suppourted')
+        raise TypeError('The datatype is not suppourted')
         return False
 
 def generate_ddl(dtype_dict: dict,
                  table_name: str,
                  sortkeys:list =[],
                  distkey:str = None) -> str:
+    """Creates DDL for the table based on the column names and types"""
     init_str = f'''CREATE TABLE IF NOT EXISTS {table_name}(\n'''
     attr = [k+' '+dtype_dict[k] for k in dtype_dict]
     extra = ''
     if distkey:
-       extra += f"DISTKEY({distkey})\n"
+        extra += f"DISTKEY({distkey})\n"
     if sortkeys:
-       extra += f"SORTKEY({','.join(sortkeys)})"
+        extra += f"SORTKEY({','.join(sortkeys)})"
 
     return init_str+',\n'.join(attr)+')\n'+extra+';'
 
 
 def determine_dtypes(df, threshold = 0.8):
+    """Determines datatypes for each column in dataframe.
+    Parameters:
+        df : Pandas dataframe
+        threshold : float that determines the number past which the column is converted to datatype
+    """
     tested_dtypes = ['FLOAT',
                      'INTEGER',
                      'TIMESTAMP',
                      'DATE',
                      'BOOLEAN',
                      'SUPER']
-    
     df_length = df.shape[0]
     sample_size = (df_length>100)*100 + (not df_length>100)*df_length
 
@@ -97,9 +109,7 @@ def determine_dtypes(df, threshold = 0.8):
         for t in tested_dtypes:
             temp_arr.append(test_df[c].dropna().apply(lambda x:is_dtype(x, t)).sum()/sample_size)
         top_value_index = np.argsort(temp_arr)[::-1][0]
-        
         arr_vals = temp_arr[top_value_index]
-        
         if arr_vals>threshold:
             dtype = tested_dtypes[top_value_index]
         else:
@@ -120,6 +130,7 @@ def create_table_from_df(df,
                          threshold:float = 0.8,
                          show_ddl:bool = False,
                          no_execute:bool = False) -> str:
+    """Packages all the functions above into one"""
     sql_datatypes=determine_dtypes(df,threshold)
     ddl = generate_ddl(sql_datatypes, table_name,sortkeys, distkey)
     if show_ddl:
