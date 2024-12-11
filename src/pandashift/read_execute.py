@@ -7,9 +7,14 @@ from .constants import default_conn_mappings
 
 def read_query(query,
                credentials=None):
-    """Reads the results of query and places them into pandas DataFrame.
-    If there is no credentials variable passed will check for credentials
-    in default locations (default_conn_mappings)"""
+    """Connects to Redshift Database and saves result to pandas DataFrame.
+    Parameters:
+        query:  The query for execution (only SELECT will work)
+        credentials:    Credentials to use for connection if any 
+                        (if None will check for default in default_conn_mappings)
+    Returns:
+        result: pandas DataFrame with all the results
+    """
     if credentials is None:
         credentials = {k:os.getenv(v) for k,v in default_conn_mappings.items()}
         missing_fields = [default_conn_mappings[k] for k,v in credentials.items() if v is None]
@@ -25,9 +30,12 @@ def read_query(query,
 
 
 def execute_query(query, credentials=None):
-    """Executes the results of query and returns "Success" if the query was run
-    If there is no credentials variable passed will check for credentials
-    in default locations (default_conn_mappings)"""
+    """Connects to Redshift Database and saves result to pandas DataFrame.
+    Parameters:
+        query:  The query for execution (only non SELECT will work)
+        credentials:    Credentials to use for connection if any 
+                        (if None will check for default in default_conn_mappings)
+    """
     if credentials is None:
         credentials = {k:os.getenv(v) for k,v in default_conn_mappings.items()}
         missing_fields = [default_conn_mappings[k] for k,v in credentials.items() if v is None]

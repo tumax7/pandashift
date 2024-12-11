@@ -14,3 +14,7 @@ __pycache__
 
 # PyTest
 .pytest_cache
+
+# Coverage report
+.coverage
+htmlcov/
