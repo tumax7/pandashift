@@ -1,11 +1,13 @@
+"""This module contains utility functions used by all tests"""
 from random import randint, random
 import os
 import json
-import numpy as np
 from decimal import Decimal
 from datetime import datetime, timedelta
-import pandas as pd
 import uuid
+import pandas as pd
+import numpy as np
+from src.pandashift import read_query, execute_query, load_df
 
 test_credentials ={
         "host":os.getenv("REDSHIFT_HOST"),
@@ -17,10 +19,11 @@ test_credentials ={
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-with open(dir_path+'/config.json', 'r') as f:
+with open(dir_path+'/config.json', 'r', encoding="utf-8") as f:
     config = json.load(f)
 
 def int_generator_function(tested_dtype):
+    """Generates int with errors"""
 
     # Base value
     if tested_dtype == 'SMALLINT':
@@ -41,6 +44,7 @@ def int_generator_function(tested_dtype):
     return val
 
 def float_generator_function(tested_dtype):
+    """Generates floats with errors"""
     # Base
     if tested_dtype == 'DECIMAL':
         val = Decimal(str(random()*100)[:5])
@@ -58,6 +62,7 @@ def float_generator_function(tested_dtype):
     return val
 
 def timestamp_generator_function(add_error = True):
+    """Generates timestamps and dates with errors"""
     # Base
     val = datetime.now() - timedelta(seconds=randint(1,1000000))
 
@@ -79,7 +84,8 @@ def timestamp_generator_function(add_error = True):
 
 
 def str_generator_function(tested_dtype):
-    
+    """Generates strings and booleans with errors"""
+
     # Base
     if tested_dtype == 'BOOLEAN':
         val = bool(round(random()))
@@ -99,15 +105,17 @@ def str_generator_function(tested_dtype):
     return val
 
 def super_generator_function(subtype = 'json'):
-    
+    """Generates json and arrays with errors"""
     # Base
     if subtype == 'json':
         val = json.dumps({'test':round(random()*100)})
     elif subtype == 'array':
         val = str([round(random()*100,1) for i in range(3)])
+    else:
+        val = None
     #elif subtype == 'tuple': Tuple not suppourted yet
     #    val = str((round(random()*100,1),round(random()*100,1),round(random()*100,1)))
-    
+
     # Adding random errors NULLS and floats and strings
     random_val = random()
     if (0<=random_val)&(random_val<0.1):
@@ -117,7 +125,11 @@ def super_generator_function(subtype = 'json'):
     return val
 
 
-def generate_test_df(types_tested = ['DATE','INTEGER','DOUBLE','VARCHAR','SUPER'], length = 1000):
+def generate_test_df(types_tested = None, length = 1000):
+    """Combines the generator function to make a test df"""
+    if types_tested is None:
+        types_tested = ['DATE','INTEGER','DOUBLE','VARCHAR','SUPER']
+
     df = pd.DataFrame(columns = [t.lower() for t in types_tested])
     for t in types_tested:
         if t in ('DECIMAL','REAL','DOUBLE'):
@@ -129,6 +141,28 @@ def generate_test_df(types_tested = ['DATE','INTEGER','DOUBLE','VARCHAR','SUPER'
         elif t in ('TIMESTAMP','DATE'):
             df[t.lower()] = [timestamp_generator_function() for i in range(length)]
         elif t == 'SUPER':
-            for subtype in ['json','array']: 
-                df[t.lower()+'_'+subtype] = [super_generator_function(subtype) for i in range(length)]
+            for subt in ['json','array']:
+                df[t.lower()+'_'+subt] = [super_generator_function(subt) for i in range(length)]
     return df
+
+
+def run_type_test(types_tested:list,
+                  redshift_column_types:dict):
+    """Creates table and runs basic write and load test on it"""
+    table_name = f"{config['specified_schema']}.{config['test_table_name']}"
+
+    execute_query(f'DROP TABLE IF EXISTS {table_name}')
+    # Generating df
+    df = generate_test_df(types_tested)
+    mapped_cols = ',\n'.join([f'{k} {v}' for k,v in redshift_column_types.items()])+'\n'
+
+    execute_query(f'''
+    CREATE TABLE IF NOT EXISTS {table_name} ({mapped_cols})''')
+
+    load_df(df, table_name = table_name)
+
+    result = read_query(f"SELECT * FROM {table_name} LIMIT 10")
+
+    execute_query(f"DROP TABLE {table_name}")
+
+    return result
