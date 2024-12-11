@@ -26,4 +26,4 @@ jobs:
         pip install .[tests]
     - name: Analysing the code with pylint
       run: |
-        pylint src
+        pylint $(git ls-files '*.py')
