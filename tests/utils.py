@@ -94,7 +94,8 @@ def str_generator_function(tested_dtype):
         val = None
     elif (0.3<=random_val)&(random_val<0.31):
         val = val*4
-
+    elif (0.31<=random_val)&(random_val<0.5):
+        val = str(val)
     return val
 
 def super_generator_function(subtype = 'json'):

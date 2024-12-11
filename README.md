@@ -71,7 +71,7 @@ load_df(df, table_name = 'public.test',credentials = creds)
 | table_name            | The table that you want to load the df to|
 | credentials           | Credentials to use for connection if any|
 | auto_create_table     | Create the table if it doesn't exist, by default **False**|
-| verify_column_names   | The checks that the dataframe column order matches the table column order, by default|
+| verify_column_names   | The checks that the dataframe column order matches the table column order, by default **True**|
 | empty_str_as_null     | This option will interpret empty string '' as NULL, by default  **True**|
 | maximum_insert_length | Maximum length of the insert statement, alter this if you get error exceeding the max statement length, by default **16000000**|
 | perform_analyze       | If this is true at the end of loading will run ANALYZE table, by default  **False**|

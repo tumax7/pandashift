@@ -1,6 +1,7 @@
+"""This module contains constants used throughout the package"""
 import numpy as np
 
-default_connection_mappings = {
+default_conn_mappings = {
                 "host":"REDSHIFT_HOST",
                 "port":"REDSHIFT_PORT",
                 "dbname":"REDSHIFT_DATABASE",

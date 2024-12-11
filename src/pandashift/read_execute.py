@@ -1,33 +1,48 @@
+"""This module does reading and executing for the queries."""
 import os
 import psycopg
-import numpy as np
 import pandas as pd
-from .constants import default_connection_mappings
+from .constants import default_conn_mappings
 
 
 def read_query(query,
                credentials=None):
-    if credentials == None:        
-        credentials = {k:os.getenv(default_connection_mappings[k]) for k in default_connection_mappings.keys()}
-        missing_fields = [default_connection_mappings[k] for k in credentials.keys() if credentials[k]==None]
+    """Connects to Redshift Database and saves result to pandas DataFrame.
+    Parameters:
+        query:  The query for execution (only SELECT will work)
+        credentials:    Credentials to use for connection if any 
+                        (if None will check for default in default_conn_mappings)
+    Returns:
+        result: pandas DataFrame with all the results
+    """
+    if credentials is None:
+        credentials = {k:os.getenv(v) for k,v in default_conn_mappings.items()}
+        missing_fields = [default_conn_mappings[k] for k,v in credentials.items() if v is None]
         if missing_fields:
             missing_field_str = ',\n'.join(missing_fields)
-            raise Exception(f'''Please pass a connection dict or set the following env variables :\n{missing_field_str}''')
-    connection_clause = psycopg.connect(**credentials)
-    with connection_clause as conn:
+            raise NameError(f'''Please pass a connection
+                                or set the following env variables :\n{missing_field_str}''')
+    with psycopg.connect(**credentials) as conn:
         with conn.cursor() as cursor:
             cursor.execute(query)
-            result = pd.DataFrame(cursor.fetchall(), columns = [desc[0] for desc in cursor.description])
+            result = pd.DataFrame(cursor.fetchall(), columns = [d[0] for d in cursor.description])
     return result
 
 
 def execute_query(query, credentials=None):
-    if credentials == None:        
-        credentials = {k:os.getenv(default_connection_mappings[k]) for k in default_connection_mappings.keys()}
-        missing_fields = [default_connection_mappings[k] for k in credentials.keys() if credentials[k]==None]
+    """Connects to Redshift Database and saves result to pandas DataFrame.
+    Parameters:
+        query:  The query for execution (only non SELECT will work)
+        credentials:    Credentials to use for connection if any 
+                        (if None will check for default in default_conn_mappings)
+    """
+    if credentials is None:
+        credentials = {k:os.getenv(v) for k,v in default_conn_mappings.items()}
+        missing_fields = [default_conn_mappings[k] for k,v in credentials.items() if v is None]
         if missing_fields:
             missing_field_str = ',\n'.join(missing_fields)
-            raise Exception(f'''Please pass a connection dict or set the following env variables :\n{missing_field_str}''')
+            raise NameError(f'''Please pass a connection dict
+                                or set the following env variables :\n{missing_field_str}''')
     with psycopg.connect(**credentials) as conn:
         with conn.cursor() as cursor:
             cursor.execute(query)

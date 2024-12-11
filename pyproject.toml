@@ -31,4 +31,15 @@ classifiers = [
 Homepage = "https://github.com/tumax7/pandashift"
 Issues = "https://github.com/tumax7/pandashift/issues"
 
+[project.optional-dependencies]
+tests = [
+  "pytest",
+  "python-dotenv",
+  "pylint"
+]
+
+[tool.pylint.'MESSAGES CONTROL']
+# There is a bug with psycopg causing this issue
+disable = "not-context-manager"
+
 
