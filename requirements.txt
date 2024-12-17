@@ -1,8 +1,0 @@
-# For testing
-pytest
-python-dotenv
-
-# Main
-pandas
-psycopg
-psycopg[binary]

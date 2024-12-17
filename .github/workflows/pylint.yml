@@ -1,4 +1,4 @@
-name: Pylint
+name: Pylint + Pytest
 
 on:
   push:
@@ -24,6 +24,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install .
         pip install .[tests]
-    - name: Analysing the code with pylint
+    - name: Analysing the main code with pylint
       run: |
-        pylint $(git ls-files '*.py')
+        pylint src
+    - name: Analysing the tests code with pylint
+      run: |
+        pylint tests

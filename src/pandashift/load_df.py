@@ -153,7 +153,12 @@ def load_df(init_df,
         Number of rows loaded
     """
     if kwargs.get('auto_create_table') is True:
-        create_table_from_df(init_df, table_name, credentials=kwargs.get('credentials'))
+        create_table_from_df(init_df,
+                             table_name,
+                             credentials=kwargs.get('credentials'),
+                             threshold=kwargs.get('auto_create_threshold'),
+                             show_ddl=kwargs.get('auto_create_show_ddl')
+                             )
 
     # To avoid altering current data
     df = init_df.copy()
