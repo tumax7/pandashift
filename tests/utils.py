@@ -104,24 +104,57 @@ def str_generator_function(tested_dtype):
         val = str(val)
     return val
 
-def super_generator_function(subtype = 'json'):
+def array_generator_function(add_error = True, return_str = True):
+    val = [round(random()*100,1) for i in range(3)]
+
+    if add_error:
+        random_val = random()
+        if (0<=random_val)&(random_val<0.1):
+            val = np.nan
+        elif (0.1<=random_val)&(random_val<0.2):
+            val = None
+        #elif (0.2<=random_val)&(random_val<0.3):
+        #    val.append(''' h"a,'he,''')
+        #elif (0.3<=random_val)&(random_val<0.4):
+        #    val = []
+    if (return_str)& (not (val in (np.nan,None))):
+        val = str(val)
+    return val
+    
+def json_generator_function(add_error = True, return_str = True):
+    val = {'test':round(random()*100)}
+    if add_error:
+        random_val = random()
+        if (0<=random_val)&(random_val<0.1):
+            val = np.nan
+        elif (0.1<=random_val)&(random_val<0.2):
+            val = None
+        elif (0.2<=random_val)&(random_val<0.3):
+            val['error'] = ''' h\"a,\'he,'''
+        elif (0.3<=random_val)&(random_val<0.4):
+            val = {}
+
+    if (return_str)&(pd.notnull(val)):
+        val = json.dumps(val)
+    return val
+
+
+def super_generator_function(subtype = 'json',
+                             add_error = True,
+                             return_str = True):
     """Generates json and arrays with errors"""
     # Base
     if subtype == 'json':
-        val = json.dumps({'test':round(random()*100)})
+        val = json_generator_function(add_error = add_error,
+                                      return_str = return_str)
+        #                  'string_with_issues': ''' h"a,'he,'''})
     elif subtype == 'array':
-        val = str([round(random()*100,1) for i in range(3)])
+        val = array_generator_function(add_error = add_error,
+                                      return_str = return_str)
     else:
         val = None
     #elif subtype == 'tuple': Tuple not suppourted yet
     #    val = str((round(random()*100,1),round(random()*100,1),round(random()*100,1)))
-
-    # Adding random errors NULLS and floats and strings
-    random_val = random()
-    if (0<=random_val)&(random_val<0.1):
-        val = np.nan
-    elif (0.1<=random_val)&(random_val<0.2):
-        val = None
     return val
 
 
@@ -160,9 +193,9 @@ def run_type_test(types_tested:list,
     CREATE TABLE IF NOT EXISTS {table_name} ({mapped_cols})''')
 
     load_df(df, table_name = table_name)
-
     result = read_query(f"SELECT * FROM {table_name} LIMIT 10")
 
     execute_query(f"DROP TABLE {table_name}")
 
     return result
+

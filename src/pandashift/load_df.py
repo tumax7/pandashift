@@ -8,14 +8,16 @@ import re
 import pandas as pd
 import numpy as np
 
+from .constants import double_qoute_var, single_qoute_var, null_var
+
 from .read_execute import execute_query
 from .create_table_from_df import create_table_from_df, test_super
 
 def get_python_dtype(v):
     """This function returns python type of the variable"""
     response = float
-    if test_super(v):
-        response =  type(json.loads(v))
+    if (test_super(v))&(~(isinstance(v, dict)))&(~(isinstance(v, list))):
+        response =  type(json.loads(str(v)))
     else:
         response = type(v)
     return response
@@ -32,15 +34,18 @@ def best_dtype(series):
 
 def dict_parser(v):
     """Prepares dicts for redshift loading"""
-    return "JSON_PARSE(\'"+json.dumps(json.loads(v))+'''\')'''
+    if type(v)==str:
+        v = json.loads(v)
+    return "JSON_PARSE(\'"+json.dumps(v).replace("'",single_qoute_var)+'''\')'''
 
 def array_parser(v):
     """Prepares arrays for redshift loading"""
-    return 'ARRAY('+str(json.loads(v))[1:-1]+')'
+    if type(v)==str:
+        v = json.loads(v)
+    return 'ARRAY('+str(v)[1:-1]+')'
 
 def escape_dataframe_values(df):
     """Escapes values of dataframe for later replacements"""
-    null_var = "#none_qoute#"
     # Using custom escape characters
     for col, datatype in df.dtypes.items():
         if datatype =='object':
@@ -50,10 +55,10 @@ def escape_dataframe_values(df):
             elif real_dtype == dict:
                 df[col] = df[col].apply(lambda x:dict_parser(x) if pd.notnull(x) else null_var)
             elif real_dtype == list:
-                df[col] = df[col].apply(lambda x:array_parser(x) if pd.notnull(x) else null_var)
+                df[col] = df[col].apply(lambda x:array_parser(x) if not (x in (np.nan,None)) else null_var)
             elif real_dtype == str:
-                df[col] = df[col].apply(lambda x:"'"+(x.replace('"','#double_qoute#')
-                            .replace("'","#single_quote#"))+"'" if pd.notnull(x) else null_var)
+                df[col] = df[col].apply(lambda x:"'"+(x.replace('"',double_qoute_var)
+                            .replace("'",single_qoute_var))+"'" if pd.notnull(x) else null_var)
             else:
                 df[col] = df[col].apply(lambda x:"'"+str(x)+"'" if pd.notnull(x) else null_var)
 
@@ -83,9 +88,9 @@ def batch_load_dataframe(parsed_df,
 
     # String replacements
     replacements = {
-                    "#double_qoute#": '\"',
-                    "#single_quote#": "''",
-                    "#none_qoute#": "NULL",
+                    double_qoute_var: '\"',
+                    single_qoute_var: "''",
+                    null_var: "NULL",
                     "'#none_qoute#'": "NULL"
                     }
     if empty_str_as_null:

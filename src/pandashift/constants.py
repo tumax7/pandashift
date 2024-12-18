@@ -16,3 +16,7 @@ numpy_to_redshift_mappings = {
             np.dtype('bool'):'BOOLEAN',
             np.dtype('O'):'VARCHAR'
             }
+
+double_qoute_var = '#double_qoute#'
+single_qoute_var = '#single_quote#'
+null_var = '#none_qoute#'
