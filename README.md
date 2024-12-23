@@ -1,5 +1,8 @@
 # pandashift
 
+![PyPI](https://img.shields.io/pypi/v/pandashift)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/pandashift)
+
 ## Overview
 Pandashift integrates Pandas with Amazon Redshift for smooth ETL processes and data manipulation. Specifically designed for Redshift in Python, it simplifies workflows by providing easy bulk inserts and automatically handling type conversions, including the ability to convert Pandas types to Redshift types. Data can be pulled from Redshift into Pandas using the function `read_query` for quick analysis and data processing in Python. Whether creating DataFrames from Redshift or performing ETL tasks, taking advantage of Pandas and Pandashift provides flexibility and efficiency for scalable data workflows.
 
@@ -81,9 +84,9 @@ load_df(df, table_name = 'public.test',credentials = creds)
 
 ### create_table_from_df
 
-| <br>Parameter             | Usage           |
+| Parameter             | Usage           |
 |-----------------------|--------------------------------------------------------------------------------|
-| df                    | The dataframe for loading|
+| df&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                       | The dataframe for loading|
 | table_name            | The table that you want to load the df to|
 | credentials           | Credentials to use for connection if any|
 | sortkeys              | Specify desired sortkeys, by default no sortkeys are used|
@@ -105,6 +108,7 @@ Currently only the these datatypes are suppourted:
 * CHAR
 * VARCHAR
 * BOOLEAN
+* SUPER
 
 
 ## Testing
@@ -113,7 +117,7 @@ In order to run local testing
 
 1. Create an environment with required modules
 ``` bash
-pip install -r requirements.txt
+pip install ".[dev]"
 ```
 
 2. Run the following

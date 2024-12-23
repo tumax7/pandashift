@@ -8,7 +8,7 @@ import re
 import pandas as pd
 import numpy as np
 
-from .constants import double_qoute_var, single_qoute_var, null_var
+from .constants import DOUBLE_QUOTE_VAR, SINGLE_QUOTE_VAR, NULL_VAR, escape_chars
 
 from .read_execute import execute_query
 from .create_table_from_df import create_table_from_df, test_super
@@ -16,7 +16,7 @@ from .create_table_from_df import create_table_from_df, test_super
 def get_python_dtype(v):
     """This function returns python type of the variable"""
     response = float
-    if (test_super(v))&(~(isinstance(v, dict)))&(~(isinstance(v, list))):
+    if (test_super(v))&(not isinstance(v, dict))&(not isinstance(v, list)):
         response =  type(json.loads(str(v)))
     else:
         response = type(v)
@@ -32,17 +32,53 @@ def best_dtype(series):
         top_dtype = float
     return top_dtype
 
+def escape_str(s,
+               remove_double_quote = False,
+               add_quotes = False):
+    """Escaping string values for Redshift"""
+    # Check for null before converting to str (otherwise can't be used for timestamps)
+    if pd.notnull(s):
+        s = str(s)
+        if remove_double_quote:
+            parsed_str = s.replace('"', '').replace("'",SINGLE_QUOTE_VAR)
+        else:
+            parsed_str = s.replace('"',DOUBLE_QUOTE_VAR).replace("'",SINGLE_QUOTE_VAR)
+
+        if add_quotes:
+            parsed_str = "'"+parsed_str+"'"
+    else:
+        parsed_str = NULL_VAR
+    return parsed_str
+
 def dict_parser(v):
     """Prepares dicts for redshift loading"""
-    if type(v)==str:
-        v = json.loads(v)
-    return "JSON_PARSE(\'"+json.dumps(v).replace("'",single_qoute_var)+'''\')'''
+    # Returns NULL if na val
+    if pd.notnull(v):
+        if isinstance(v, str):
+            v = json.loads(v)
+        # Removing double quotes from json because it causes redshift driver to error
+        parsed_dict = {}
+        for key,val in v.items():
+            if (isinstance(key, str))&(isinstance(val, str)):
+                parsed_dict[escape_str(key,True)] = escape_str(val,True)
+            elif isinstance(key, str):
+                parsed_dict[escape_str(key,True)] = val
+            elif isinstance(val, str):
+                parsed_dict[key] = escape_str(val,True)
+            else:
+                parsed_dict[key] = val
+        result = "JSON_PARSE(\'"+json.dumps(parsed_dict)+'''\')'''
+    else:
+        result = NULL_VAR
+    return result
 
 def array_parser(v):
     """Prepares arrays for redshift loading"""
-    if type(v)==str:
-        v = json.loads(v)
-    return 'ARRAY('+str(v)[1:-1]+')'
+    if v not in (np.nan,None):
+        prepped_arr = 'ARRAY('+str(v)[1:-1]+')'
+    else:
+        prepped_arr = NULL_VAR
+    return prepped_arr
 
 def escape_dataframe_values(df):
     """Escapes values of dataframe for later replacements"""
@@ -51,22 +87,21 @@ def escape_dataframe_values(df):
         if datatype =='object':
             real_dtype = best_dtype(df[col])
             if real_dtype == Decimal:
-                df[col] = df[col].astype(float).fillna(null_var)
+                df[col] = df[col].astype(float).fillna(NULL_VAR)
             elif real_dtype == dict:
-                df[col] = df[col].apply(lambda x:dict_parser(x) if pd.notnull(x) else null_var)
+                df[col] = df[col].apply(dict_parser)
             elif real_dtype == list:
-                df[col] = df[col].apply(lambda x:array_parser(x) if not (x in (np.nan,None)) else null_var)
+                df[col] = df[col].apply(array_parser)
             elif real_dtype == str:
-                df[col] = df[col].apply(lambda x:"'"+(x.replace('"',double_qoute_var)
-                            .replace("'",single_qoute_var))+"'" if pd.notnull(x) else null_var)
+                df[col] = df[col].apply(escape_str,add_quotes=True)
             else:
-                df[col] = df[col].apply(lambda x:"'"+str(x)+"'" if pd.notnull(x) else null_var)
+                df[col] = df[col].apply(escape_str,add_quotes=True)
 
         elif datatype in (date,datetime,np.datetime64,np.dtype('<M8[ns]')):
-            df[col] = df[col].apply(lambda x:"'"+str(x)+"'" if pd.notnull(x) else null_var)
+            df[col] = df[col].apply(escape_str,add_quotes=True)
 
         else:
-            df[col] = df[col].fillna(null_var)
+            df[col] = df[col].fillna(NULL_VAR)
     return df
 
 # Load batch df
@@ -86,18 +121,11 @@ def batch_load_dataframe(parsed_df,
     temp_insert_string = ''
     batch_counter = 1
 
-    # String replacements
-    replacements = {
-                    double_qoute_var: '\"',
-                    single_qoute_var: "''",
-                    null_var: "NULL",
-                    "'#none_qoute#'": "NULL"
-                    }
     if empty_str_as_null:
-        replacements["''"] = "NULL"
+        escape_chars["''"] = "NULL"
 
     # Compiling re to improve performance
-    pattern = re.compile("|".join(replacements.keys()))
+    pattern = re.compile("|".join(escape_chars.keys()))
 
     # Splitting dataframe into batches
     for i,row_arr in enumerate(parsed_df.values):
@@ -114,7 +142,7 @@ def batch_load_dataframe(parsed_df,
         else:
             print(f'Writing batch {batch_counter}')
             # Parsing for NULLS and quotes
-            temp_insert_string = pattern.sub(lambda match: replacements[match.group(0)],
+            temp_insert_string = pattern.sub(lambda match: escape_chars[match.group(0)],
                                                            temp_insert_string)
             # Inserting result
             execute_query(header_of_string +temp_insert_string[:-2] +';',
@@ -127,7 +155,7 @@ def batch_load_dataframe(parsed_df,
     print(f'Writing batch {batch_counter}')
 
     # Parsing for NULLS and quotes
-    temp_insert_string = pattern.sub(lambda match: replacements[match.group(0)],temp_insert_string)
+    temp_insert_string = pattern.sub(lambda match: escape_chars[match.group(0)],temp_insert_string)
     execute_query(header_of_string+temp_insert_string[:-2] +';',
                   credentials=kwargs.get('credentials'))
 

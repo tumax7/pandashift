@@ -4,11 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pandashift"
-version = "1.0.4"
+version = "1.0.5"
 dependencies = [
     "psycopg",
     "psycopg[binary]",
-    "pandas"
+    "pandas",
+    "python-dotenv"
 ]
 
 requires-python = ">=3.10"
@@ -17,7 +18,7 @@ authors = [
 ]
 description = "Module for quick and easy access to redshift using pandas"
 readme = "README.md"
-keywords = ["redshift", "pandas", "analytics", "amazon"]
+keywords = ["redshift", "pandas", "analytics", "amazon", "pandashift"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3.10",
@@ -32,9 +33,8 @@ Homepage = "https://github.com/tumax7/pandashift"
 Issues = "https://github.com/tumax7/pandashift/issues"
 
 [project.optional-dependencies]
-tests = [
+dev = [
   "pytest",
-  "python-dotenv",
   "pylint"
 ]
 

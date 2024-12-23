@@ -17,6 +17,12 @@ numpy_to_redshift_mappings = {
             np.dtype('O'):'VARCHAR'
             }
 
-double_qoute_var = '#double_qoute#'
-single_qoute_var = '#single_quote#'
-null_var = '#none_qoute#'
+DOUBLE_QUOTE_VAR = '#double_qoute#'
+SINGLE_QUOTE_VAR = '#single_quote#'
+NULL_VAR = '#none_qoute#'
+
+escape_chars = {
+                DOUBLE_QUOTE_VAR: '\"',
+                SINGLE_QUOTE_VAR: "''",
+                NULL_VAR: "NULL"
+                }

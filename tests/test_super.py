@@ -19,9 +19,6 @@ def test_super():
                                                 add_error = False,
                                                 return_str = False) for i in range(df_length)]
 
-    print(df)
-    print(df['super_json'].value_counts())
-    
     create_table_from_df(df, table_name, show_ddl=True, threshold = 0.5)
 
     load_df(df, table_name = table_name)
@@ -30,7 +27,7 @@ def test_super():
                                    COUNT(DISTINCT super_array[0]) as array_test,
                                    COUNT(DISTINCT pure_dict.test) as pure_json_test,
                                    COUNT(DISTINCT pure_arr[0]) as pure_array_test  
-                            FROM {table_name} 
+                            FROM {table_name}
                             LIMIT 10''')
 
     execute_query(f"DROP TABLE {table_name}")

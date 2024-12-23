@@ -20,7 +20,7 @@ def test_auto_create_table():
     result = read_query(f'''SELECT *,
                                    NVL(super_json.test,0)::INT as test_json_val,
                                    NVL(super_array[0],0)::FLOAT as test_arr_val  
-                            FROM {table_name} 
+                            FROM {table_name}
                             LIMIT 10''')
 
     execute_query(f"DROP TABLE {table_name}")
