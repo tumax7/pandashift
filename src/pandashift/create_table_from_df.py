@@ -23,17 +23,20 @@ def test_bool(s):
 def test_super(s):
     """Performs test on string to check if it is redshift super type"""
     response = False
-    try:
-        json.loads(s)
+    if (isinstance(s, dict))|(isinstance(s, list)):
         response = True
-    except (json.JSONDecodeError, TypeError):
-        pass
+    else:
+        try:
+            json.loads(str(s))
+            response = True
+        except (json.JSONDecodeError, TypeError):
+            pass
     return response
 
 def test_date(s, mode):
     """Performs test on string to check if it is date or timestamp depending on mode"""
     response = False
-    dt = pd.to_datetime(s, errors='coerce')
+    dt = pd.to_datetime(str(s), errors='coerce')
     hour_sum = dt.hour+dt.minute+dt.second
     if not pd.isnull(dt):
         if ((mode == 'TIMESTAMP') & (hour_sum>0))|((mode == 'DATE') & (hour_sum==0)):
